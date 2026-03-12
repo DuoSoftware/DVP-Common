@@ -3,7 +3,7 @@
  */
 var redis = require("ioredis");
 var config = require('config');
-var Redlock = require('redlock');
+var Redlock = require('redlock').default;
 var logger = require('../LogHandler/CommonLogHandler').logger;
 var dbmodel = require('dvp-dbmodels');
 
@@ -574,7 +574,7 @@ var addClusterToCache = function(clusterId)
     var ttl = 2000;
     var lockKey = 'CLOUDLOCK:' + clusterId;
 
-    redlock.lock(lockKey, ttl).then(function(lock)
+    redlock.acquire([lockKey], ttl).then(function(lock)
     {
 
         dbmodel.Cloud.find({where: [{id: clusterId}], include: [{model: dbmodel.LoadBalancer, as: "LoadBalancer"}]})
@@ -589,7 +589,7 @@ var addClusterToCache = function(clusterId)
                             logger.error('[DVP-Common-RedisCaching] - [%s] - REDIS ERROR', err);
                         }
 
-                        lock.unlock()
+                        lock.release()
                             .catch(function(err) {
                                 logger.error('[DVP-Common.addClusterToCache] - [%s] - REDIS LOCK RELEASE FAILED', err);
                             });
@@ -597,7 +597,7 @@ var addClusterToCache = function(clusterId)
                 }
                 else
                 {
-                    lock.unlock()
+                    lock.release()
                         .catch(function(err) {
                             logger.error('[DVP-Common.addClusterToCache] - [%s] - REDIS LOCK RELEASE FAILED', err);
                         });
@@ -622,7 +622,7 @@ var addTrunkToCache = function(trunkId)
     var ttl = 2000;
     var lockKey = 'TRUNKLOCK:' + trunkId;
 
-    redlock.lock(lockKey, ttl).then(function(lock)
+    redlock.acquire([lockKey], ttl).then(function(lock)
     {
         dbmodel.Trunk.find({ where:[{id: trunkId}], include : [{model: dbmodel.TrunkIpAddress, as: "TrunkIpAddress"}]})
             .then(function (trunk)
@@ -635,7 +635,7 @@ var addTrunkToCache = function(trunkId)
                         {
                             logger.error('[DVP-Common-RedisCaching] - [%s] - REDIS ERROR', err);
                         }
-                        lock.unlock()
+                        lock.release()
                             .catch(function(err) {
                                 logger.error('[DVP-Common.addTrunkToCache] - [%s] - REDIS LOCK RELEASE FAILED', err);
                             });
@@ -643,7 +643,7 @@ var addTrunkToCache = function(trunkId)
                 }
                 else
                 {
-                    lock.unlock()
+                    lock.release()
                         .catch(function(err) {
                             logger.error('[DVP-Common.addTrunkToCache] - [%s] - REDIS LOCK RELEASE FAILED', err);
                         });
@@ -671,7 +671,7 @@ var addSipProfileToCompanyObj = function(profileObj, tenantId, companyId)
 
     var key = 'DVPCACHE:' + tenantId + ':' + companyId;
 
-    redlock.lock(lockKey, ttl).then(function(lock)
+    redlock.acquire([lockKey], ttl).then(function(lock)
     {
         client.get(key, function(err, compStr)
         {
@@ -729,7 +729,7 @@ var addCloudEndUserToCompanyObj = function(euObj, tenantId, companyId)
 
     var key = 'DVPCACHE:' + tenantId + ':' + companyId;
 
-    redlock.lock(lockKey, ttl).then(function(lock)
+    redlock.acquire([lockKey], ttl).then(function(lock)
     {
         client.get(key, function(err, compStr)
         {
@@ -788,7 +788,7 @@ var removeCloudEndUserFromCompanyObj = function(euId, tenantId, companyId)
 
     var key = 'DVPCACHE:' + tenantId + ':' + companyId;
 
-    redlock.lock(lockKey, ttl).then(function(lock)
+    redlock.acquire([lockKey], ttl).then(function(lock)
     {
         client.get(key, function(err, compStr)
         {
@@ -820,7 +820,7 @@ var removeCloudEndUserFromCompanyObj = function(euId, tenantId, companyId)
                     {
                         logger.error('[DVP-Common-RedisCaching] - [%s] - REDIS ERROR', err);
                     }
-                    lock.unlock()
+                    lock.release()
                         .catch(function(err) {
                             logger.error('[DVP-Common.removeCloudEndUserFromCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                         });
@@ -853,7 +853,7 @@ var addCallRuleToCompanyObj = function(ruleObj, tenantId, companyId)
 
     var key = 'DVPCACHE:' + tenantId + ':' + companyId;
 
-    redlock.lock(lockKey, ttl).then(function(lock)
+    redlock.acquire([lockKey], ttl).then(function(lock)
     {
         client.get(key, function(err, compStr)
         {
@@ -911,7 +911,7 @@ var removeCallRuleFromCompanyObj = function(ruleId, tenantId, companyId)
 
     var key = 'DVPCACHE:' + tenantId + ':' + companyId;
 
-    redlock.lock(lockKey, ttl).then(function(lock)
+    redlock.acquire([lockKey], ttl).then(function(lock)
     {
         client.get(key, function(err, compStr)
         {
@@ -943,7 +943,7 @@ var removeCallRuleFromCompanyObj = function(ruleId, tenantId, companyId)
                     {
                         logger.error('[DVP-Common-RedisCaching] - [%s] - REDIS ERROR', err);
                     }
-                    lock.unlock()
+                    lock.release()
                         .catch(function(err) {
                             logger.error('[DVP-Common.removeCallRuleFromCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                         });
@@ -975,7 +975,7 @@ var addApplicationToCompanyObj = function(appObj, tenantId, companyId)
 
     var key = 'DVPCACHE:' + tenantId + ':' + companyId;
 
-    redlock.lock(lockKey, ttl).then(function(lock)
+    redlock.acquire([lockKey], ttl).then(function(lock)
     {
         client.get(key, function(err, compStr)
         {
@@ -1033,7 +1033,7 @@ var removeApplicationFromCompanyObj = function(appId, tenantId, companyId)
 
     var key = 'DVPCACHE:' + tenantId + ':' + companyId;
 
-    redlock.lock(lockKey, ttl).then(function(lock)
+    redlock.acquire([lockKey], ttl).then(function(lock)
     {
         client.get(key, function(err, compStr)
         {
@@ -1065,7 +1065,7 @@ var removeApplicationFromCompanyObj = function(appId, tenantId, companyId)
                     {
                         logger.error('[DVP-Common-RedisCaching] - [%s] - REDIS ERROR', err);
                     }
-                    lock.unlock()
+                    lock.release()
                         .catch(function(err) {
                             logger.error('[DVP-Common.removeApplicationFromCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                         });
@@ -1097,7 +1097,7 @@ var addTranslationToCompanyObj = function(transObj, tenantId, companyId)
 
     var key = 'DVPCACHE:' + tenantId + ':' + companyId;
 
-    redlock.lock(lockKey, ttl).then(function(lock)
+    redlock.acquire([lockKey], ttl).then(function(lock)
     {
         client.get(key, function(err, compStr)
         {
@@ -1147,7 +1147,7 @@ var removeTranslationFromCompanyObj = function(transId, tenantId, companyId)
 
     var key = 'DVPCACHE:' + tenantId + ':' + companyId;
 
-    redlock.lock(lockKey, ttl).then(function(lock)
+    redlock.acquire([lockKey], ttl).then(function(lock)
     {
         client.get(key, function(err, compStr)
         {
@@ -1171,7 +1171,7 @@ var removeTranslationFromCompanyObj = function(transId, tenantId, companyId)
                 delete compObj.Translation[transId];
                 client.set(key, JSON.stringify(compObj), function(err, compObj)
                 {
-                    lock.unlock()
+                    lock.release()
                         .catch(function(err) {
                             logger.error('[DVP-Common.removeApplicationFromCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                         });
@@ -1204,7 +1204,7 @@ var addTransferCodeToCompanyObj = function(tcObj, tenantId, companyId)
 
     var key = 'DVPCACHE:' + tenantId + ':' + companyId;
 
-    redlock.lock(lockKey, ttl).then(function(lock)
+    redlock.acquire([lockKey], ttl).then(function(lock)
     {
         client.get(key, function(err, compStr)
         {
@@ -1254,7 +1254,7 @@ var removeTransferCodeFromCompanyObj = function(tenantId, companyId)
 
     var key = 'DVPCACHE:' + tenantId + ':' + companyId;
 
-    redlock.lock(lockKey, ttl).then(function(lock)
+    redlock.acquire([lockKey], ttl).then(function(lock)
     {
         client.get(key, function(err, compStr)
         {
@@ -1278,7 +1278,7 @@ var removeTransferCodeFromCompanyObj = function(tenantId, companyId)
                 delete compObj.TransferCode;
                 client.set(key, JSON.stringify(compObj), function(err, compObjResp)
                 {
-                    lock.unlock()
+                    lock.release()
                         .catch(function(err) {
                             logger.error('[DVP-Common.removeCloudEndUserFromCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                         });
@@ -1310,7 +1310,7 @@ var removeSipProfileFromCompanyObj = function(profileId, tenantId, companyId)
 
     var key = 'DVPCACHE:' + tenantId + ':' + companyId;
 
-    redlock.lock(lockKey, ttl).then(function(lock)
+    redlock.acquire([lockKey], ttl).then(function(lock)
     {
         client.get(key, function(err, compStr)
         {
@@ -1334,7 +1334,7 @@ var removeSipProfileFromCompanyObj = function(profileId, tenantId, companyId)
                 delete compObj.SipNetworkProfile[profileId];
                 client.set(key, JSON.stringify(compObj), function(err, compObj)
                 {
-                    lock.unlock()
+                    lock.release()
                         .catch(function(err) {
                             logger.error('[DVP-Common.addSipProfileToCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                         });
@@ -1366,7 +1366,7 @@ var addCallServerToCompanyObj = function(newCsObj, tenantId, companyId)
 
     var key = 'DVPCACHE:' + tenantId + ':' + companyId;
 
-    redlock.lock(lockKey, ttl).then(function(lock)
+    redlock.acquire([lockKey], ttl).then(function(lock)
     {
         client.get(key, function(err, compStr)
         {
