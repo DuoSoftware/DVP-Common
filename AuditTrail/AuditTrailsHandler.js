@@ -2,153 +2,177 @@
  * Created by Rajinda on 9/29/2015.
  */
 
-var logger = require('../LogHandler/CommonLogHandler').logger;
-var DbConn = require('dvp-dbmodels');
-var moment = require('moment');
-var Sequelize = require('sequelize');
+var logger = require("../LogHandler/CommonLogHandler").logger;
+var DbConn = require("dvp-dbmodels");
+var moment = require("moment");
+var Sequelize = require("sequelize");
 // var request = require('request');
-var diff = require('deep-diff').diff;
-var isJSON = require('is-json');
-var util = require('util');
+var diff = require("deep-diff").diff;
+var isJSON = require("is-json");
 
+module.exports.CreateAuditTrails = function (
+  tenantId,
+  companyId,
+  iss,
+  auditTrails,
+  callBack,
+) {
+  var differences;
 
-module.exports.CreateAuditTrails = function (tenantId,companyId,iss,auditTrails, callBack) {
+  var tempNewObj = auditTrails.NewValue;
+  var tempOldObj = auditTrails.OldValue;
 
+  if (tempNewObj && typeof tempNewObj === "object" && tempNewObj !== null) {
+    tempNewObj = JSON.stringify(auditTrails.NewValue);
+  }
 
-    var differences;
+  if (tempOldObj && typeof tempOldObj === "object" && tempOldObj !== null) {
+    tempOldObj = JSON.stringify(auditTrails.OldValue);
+  }
 
-    var tempNewObj = auditTrails.NewValue;
-    var tempOldObj = auditTrails.OldValue;
+  var maxLen = 19999;
+  if (typeof tempNewObj === "string" && tempNewObj.length > maxLen) {
+    tempNewObj = tempNewObj.substring(0, maxLen);
+  }
+  if (typeof tempOldObj === "string" && tempOldObj.length > maxLen) {
+    tempOldObj = tempOldObj.substring(0, maxLen);
+  }
 
-    if(tempNewObj && util.isObject(tempNewObj) ){
+  if (
+    typeof tempNewObj === "object" &&
+    tempNewObj !== null &&
+    typeof tempOldObj === "object" &&
+    tempOldObj !== null
+  ) {
+    differences = diff(auditTrails.OldValue, auditTrails.NewValue);
+  }
 
-        tempNewObj = JSON.stringify(auditTrails.NewValue);
-    }
-
-    if(tempOldObj && util.isObject(tempOldObj) ){
-
-        tempOldObj = JSON.stringify(auditTrails.OldValue);
-    }
-
-
-    if(util.isObject(tempNewObj) && util.isObject(tempOldObj) )
-    {
-
-        differences = diff(auditTrails.OldValue, auditTrails.NewValue);
-    }
-
-
-    DbConn.AuditTrails
-        .create(
-            {
-                KeyProperty: auditTrails.KeyProperty,
-                OldValue: tempOldObj,
-                NewValue: tempNewObj,
-                Description: auditTrails.Description,
-                Author: auditTrails.Author,
-                User: auditTrails.User,
-                OtherJsonData: differences,
-                ObjectType: auditTrails.ObjectType,
-                Action: auditTrails.Action,
-                Application: auditTrails.Application,
-                TenantId: tenantId,
-                CompanyId: companyId
-            }
-        ).then(function (cmp) {
-            callBack(undefined,cmp);
-    }).catch(function (err) {
-            callBack(err,undefined);
-    });
-
-};
-
-module.exports.GetAllAuditTrails = function (tenantId,companyId, callBack) {
-    DbConn.AuditTrails.findAll({
-        where: [{CompanyId: companyId}, {TenantId: tenantId}],order: [['AuditTrailsId', 'DESC']]
-    }).then(function (CamObject) {
-        callBack(undefined,CamObject);
-    }).catch(function (err) {
-        callBack(err,undefined);
+  DbConn.AuditTrails.create({
+    KeyProperty: auditTrails.KeyProperty,
+    OldValue: tempOldObj,
+    NewValue: tempNewObj,
+    Description: auditTrails.Description,
+    Author: auditTrails.Author,
+    User: auditTrails.User,
+    OtherJsonData: differences,
+    ObjectType: auditTrails.ObjectType,
+    Action: auditTrails.Action,
+    Application: auditTrails.Application,
+    TenantId: tenantId,
+    CompanyId: companyId,
+  })
+    .then(function (cmp) {
+      callBack(undefined, cmp);
+    })
+    .catch(function (err) {
+      callBack(err, undefined);
     });
 };
 
-module.exports.GetAllAuditTrailsPaging =function(tenantId,companyId, application, property, author, starttime, endtime, pageSize, pageNo, callBack) {
+module.exports.GetAllAuditTrails = function (tenantId, companyId, callBack) {
+  DbConn.AuditTrails.findAll({
+    where: [{ CompanyId: companyId }, { TenantId: tenantId }],
+    order: [["AuditTrailsId", "DESC"]],
+  })
+    .then(function (CamObject) {
+      callBack(undefined, CamObject);
+    })
+    .catch(function (err) {
+      callBack(err, undefined);
+    });
+};
 
+module.exports.GetAllAuditTrailsPaging = function (
+  tenantId,
+  companyId,
+  application,
+  property,
+  author,
+  starttime,
+  endtime,
+  pageSize,
+  pageNo,
+  callBack,
+) {
+  var query = {
+    TenantId: tenantId,
+    CompanyId: companyId,
+  };
 
-    var query  = {
-        TenantId: tenantId,
-        CompanyId: companyId
+  if (starttime && endtime) {
+    query.createdAt = {
+      $lte: new Date(endtime),
+      $gte: new Date(starttime),
     };
+  }
 
-    if(starttime &&  endtime){
+  if (application) {
+    query.Application = application;
+  }
 
-        query.createdAt =  {
-            $lte: new Date(endtime),
-            $gte: new Date(starttime)
-        }
-    }
+  if (property) {
+    query.KeyProperty = property;
+  }
 
-    if(application){
+  if (author) {
+    query.Author = author;
+  }
 
-        query.Application = application;
-    }
-
-    if(property){
-
-        query.KeyProperty = property;
-    }
-
-    if(author){
-
-        query.Author = author;
-    }
-
-    DbConn.AuditTrails.findAll({
-        where: query, offset: ((pageNo - 1) * pageSize),
-        limit: pageSize,order: [['AuditTrailsId', 'DESC']]
-    }).then(function (CamObject) {
-        callBack(undefined,CamObject);
-    }).catch(function (err) {
-        callBack(err,undefined);
+  DbConn.AuditTrails.findAll({
+    where: query,
+    offset: (pageNo - 1) * pageSize,
+    limit: pageSize,
+    order: [["AuditTrailsId", "DESC"]],
+  })
+    .then(function (CamObject) {
+      callBack(undefined, CamObject);
+    })
+    .catch(function (err) {
+      callBack(err, undefined);
     });
 };
 
-module.exports.GetAllAuditTrailsCount =function(tenantId,companyId, application, property, author, starttime, endtime, callBack) {
+module.exports.GetAllAuditTrailsCount = function (
+  tenantId,
+  companyId,
+  application,
+  property,
+  author,
+  starttime,
+  endtime,
+  callBack,
+) {
+  var query = {
+    TenantId: tenantId,
+    CompanyId: companyId,
+  };
 
-
-    var query  = {
-        TenantId: tenantId,
-        CompanyId: companyId
+  if (starttime && endtime) {
+    query.createdAt = {
+      $lte: new Date(endtime),
+      $gte: new Date(starttime),
     };
+  }
 
-    if(starttime &&  endtime){
+  if (application) {
+    query.Application = application;
+  }
 
-        query.createdAt =  {
-            $lte: new Date(endtime),
-            $gte: new Date(starttime)
-        }
-    }
+  if (property) {
+    query.KeyProperty = property;
+  }
 
-    if(application){
-        query.Application = application;
-    }
+  if (author) {
+    query.Author = author;
+  }
 
-    if(property){
+  //dbModel.CallCDRProcessed.aggregate('*', 'count', {where :[{CreatedTime : { gte: st , lt: et}, CompanyId: companyId, TenantId: tenantId, DVPCallDirection: 'inbound', QueueSec: {lte: abandonCallThreshold}, AgentAnswered: false, ObjType: 'HTTAPI'}]}).then(function(dropCount)
 
-        query.KeyProperty = property;
-    }
-
-    if(author){
-
-        query.Author = author;
-    }
-
-    //dbModel.CallCDRProcessed.aggregate('*', 'count', {where :[{CreatedTime : { gte: st , lt: et}, CompanyId: companyId, TenantId: tenantId, DVPCallDirection: 'inbound', QueueSec: {lte: abandonCallThreshold}, AgentAnswered: false, ObjType: 'HTTAPI'}]}).then(function(dropCount)
-
-    DbConn.AuditTrails.aggregate('*', 'count',{where: query
-    }).then(function (count) {
-        callBack(null, count);
-    }).catch(function (err) {
-        callBack(err, 0);
+  DbConn.AuditTrails.aggregate("*", "count", { where: query })
+    .then(function (count) {
+      callBack(null, count);
+    })
+    .catch(function (err) {
+      callBack(err, 0);
     });
 };
