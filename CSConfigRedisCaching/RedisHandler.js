@@ -252,7 +252,7 @@ var addDataToCache = function(companyId, tenantId)
 
     //--------------- ADD TRANSFER CODES ----------------//
 
-    dbmodel.TransferCode.find({where:[{CompanyId: companyId},{TenantId: tenantId}]})
+    dbmodel.TransferCode.findOne({where:[{CompanyId: companyId},{TenantId: tenantId}]})
         .then(function (transCode)
         {
             if(transCode)
@@ -488,7 +488,7 @@ var addDataToCache = function(companyId, tenantId)
 
     //------------ADD FC LIST --------------//
 
-    dbmodel.FeatureCode.find({where:[{CompanyId: companyId},{TenantId: tenantId}]})
+    dbmodel.FeatureCode.findOne({where:[{CompanyId: companyId},{TenantId: tenantId}]})
         .then(function (fc)
         {
             if(fc)
@@ -505,7 +505,7 @@ var addDataToCache = function(companyId, tenantId)
 
     //------------ADD PBX COMPANY INFO --------------//
 
-    dbmodel.PBXMasterData.find({where:[{CompanyId: companyId},{TenantId: tenantId}]})
+    dbmodel.PBXMasterData.findOne({where:[{CompanyId: companyId},{TenantId: tenantId}]})
         .then(function (pbxMaster)
         {
             if(pbxMaster)
@@ -577,7 +577,7 @@ var addClusterToCache = function(clusterId)
     redlock.acquire([lockKey], ttl).then(function(lock)
     {
 
-        dbmodel.Cloud.find({where: [{id: clusterId}], include: [{model: dbmodel.LoadBalancer, as: "LoadBalancer"}]})
+        dbmodel.Cloud.findOne({where: {id: clusterId}, include: [{model: dbmodel.LoadBalancer, as: "LoadBalancer"}]})
             .then(function (cloudRec)
             {
                 if (cloudRec)
@@ -605,7 +605,7 @@ var addClusterToCache = function(clusterId)
 
             }).catch(function(err)
             {
-                lock.unlock()
+                lock.release()
                     .catch(function(err) {
                         logger.error('[DVP-Common.addClusterToCache] - [%s] - REDIS LOCK RELEASE FAILED', err);
                     });
@@ -624,7 +624,7 @@ var addTrunkToCache = function(trunkId)
 
     redlock.acquire([lockKey], ttl).then(function(lock)
     {
-        dbmodel.Trunk.find({ where:[{id: trunkId}], include : [{model: dbmodel.TrunkIpAddress, as: "TrunkIpAddress"}]})
+        dbmodel.Trunk.findOne({ where:[{id: trunkId}], include : [{model: dbmodel.TrunkIpAddress, as: "TrunkIpAddress"}]})
             .then(function (trunk)
             {
                 if (trunk)
@@ -651,7 +651,7 @@ var addTrunkToCache = function(trunkId)
 
             }).catch(function(err)
             {
-                lock.unlock()
+                lock.release()
                     .catch(function(err) {
                         logger.error('[DVP-Common.addTrunkToCache] - [%s] - REDIS LOCK RELEASE FAILED', err);
                     });
@@ -707,7 +707,7 @@ var addSipProfileToCompanyObj = function(profileObj, tenantId, companyId)
                 {
                     logger.error('[DVP-Common-RedisCaching] - [%s] - REDIS ERROR', err);
                 }
-                lock.unlock()
+                lock.release()
                     .catch(function(err) {
                         logger.error('[DVP-Common.addSipProfileToCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                     });
@@ -766,7 +766,7 @@ var addCloudEndUserToCompanyObj = function(euObj, tenantId, companyId)
                 {
                     logger.error('[DVP-Common-RedisCaching] - [%s] - REDIS ERROR', err);
                 }
-                lock.unlock()
+                lock.release()
                     .catch(function(err) {
                         logger.error('[DVP-Common.addCloudEndUserToCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                     });
@@ -829,7 +829,7 @@ var removeCloudEndUserFromCompanyObj = function(euId, tenantId, companyId)
             }
             else
             {
-                lock.unlock()
+                lock.release()
                     .catch(function(err) {
                         logger.error('[DVP-Common.removeCloudEndUserFromCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                     });
@@ -889,7 +889,7 @@ var addCallRuleToCompanyObj = function(ruleObj, tenantId, companyId)
                 {
                     logger.error('[DVP-Common-RedisCaching] - [%s] - REDIS ERROR', err);
                 }
-                lock.unlock()
+                lock.release()
                     .catch(function(err) {
                         logger.error('[DVP-Common.addCallRuleToCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                     });
@@ -952,7 +952,7 @@ var removeCallRuleFromCompanyObj = function(ruleId, tenantId, companyId)
             }
             else
             {
-                lock.unlock()
+                lock.release()
                     .catch(function(err) {
                         logger.error('[DVP-Common.removeCallRuleFromCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                     });
@@ -1011,7 +1011,7 @@ var addApplicationToCompanyObj = function(appObj, tenantId, companyId)
                 {
                     logger.error('[DVP-Common-RedisCaching] - [%s] - REDIS ERROR', err);
                 }
-                lock.unlock()
+                lock.release()
                     .catch(function(err) {
                         logger.error('[DVP-Common.addApplicationToCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                     });
@@ -1074,7 +1074,7 @@ var removeApplicationFromCompanyObj = function(appId, tenantId, companyId)
             }
             else
             {
-                lock.unlock()
+                lock.release()
                     .catch(function(err) {
                         logger.error('[DVP-Common.removeApplicationFromCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                     });
@@ -1125,7 +1125,7 @@ var addTranslationToCompanyObj = function(transObj, tenantId, companyId)
 
             client.set(key, JSON.stringify(compObj), function(err, compObj)
             {
-                lock.unlock()
+                lock.release()
                     .catch(function(err) {
                         logger.error('[DVP-Common.addTranslationToCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                     });
@@ -1180,7 +1180,7 @@ var removeTranslationFromCompanyObj = function(transId, tenantId, companyId)
             }
             else
             {
-                lock.unlock()
+                lock.release()
                     .catch(function(err) {
                         logger.error('[DVP-Common.removeApplicationFromCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                     });
@@ -1232,7 +1232,7 @@ var addTransferCodeToCompanyObj = function(tcObj, tenantId, companyId)
 
             client.set(key, JSON.stringify(compObj), function(err, compObjResp)
             {
-                lock.unlock()
+                lock.release()
                     .catch(function(err) {
                         logger.error('[DVP-Common.addTransferCodeToCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                     });
@@ -1287,7 +1287,7 @@ var removeTransferCodeFromCompanyObj = function(tenantId, companyId)
             }
             else
             {
-                lock.unlock()
+                lock.release()
                     .catch(function(err) {
                         logger.error('[DVP-Common.removeCloudEndUserFromCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                     });
@@ -1343,7 +1343,7 @@ var removeSipProfileFromCompanyObj = function(profileId, tenantId, companyId)
             }
             else
             {
-                lock.unlock()
+                lock.release()
                     .catch(function(err) {
                         logger.error('[DVP-Common.addSipProfileToCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                     });
@@ -1394,7 +1394,7 @@ var addCallServerToCompanyObj = function(newCsObj, tenantId, companyId)
 
             client.set(key, JSON.stringify(compObj), function(err, compObj)
             {
-                lock.unlock()
+                lock.release()
                     .catch(function(err) {
                         logger.error('[DVP-Common.checkAndSetCallServerToCompanyObj] - [%s] - REDIS LOCK RELEASE FAILED', err);
                     });
@@ -1715,7 +1715,7 @@ var addExtensionToCache = function(extensionObj, companyId, tenantId)
             var keyExt = 'EXTENSION:' + tenantId + ':' + companyId + ':' + extensionObj.Extension;
             if(extensionObj.ObjCategory === 'USER')
             {
-                dbmodel.Extension.find({where: [{Extension: extensionObj.Extension},{TenantId: tenantId},{CompanyId:companyId}], include: [{model: dbmodel.SipUACEndpoint, as:'SipUACEndpoint'}]})
+                dbmodel.Extension.findOne({where: [{Extension: extensionObj.Extension},{TenantId: tenantId},{CompanyId:companyId}], include: [{model: dbmodel.SipUACEndpoint, as:'SipUACEndpoint'}]})
                     .then(function (resExt)
                     {
                         if(resExt)
@@ -1736,7 +1736,7 @@ var addExtensionToCache = function(extensionObj, companyId, tenantId)
                                 var keySipUserByName = 'SIPUSER:' + resExt.SipUACEndpoint.SipUsername;
 
 
-                                dbmodel.SipUACEndpoint.find({where: [{id: resExt.SipUACEndpoint.id}], include: [{model: dbmodel.Extension, as:'Extension'}]})
+                                dbmodel.SipUACEndpoint.findOne({where: [{id: resExt.SipUACEndpoint.id}], include: [{model: dbmodel.Extension, as:'Extension'}]})
                                     .then(function (resUser)
                                     {
                                         client.set(keySipUserById, JSON.stringify(resUser), function(err, response)
@@ -1788,7 +1788,7 @@ var addExtensionToCache = function(extensionObj, companyId, tenantId)
             }
             else if(extensionObj.ObjCategory === 'GROUP')
             {
-                dbmodel.Extension.find({where: [{Extension: extensionObj.Extension},{TenantId: tenantId},{CompanyId:companyId}], include: [{model: dbmodel.UserGroup, as:'UserGroup'}]})
+                dbmodel.Extension.findOne({where: [{Extension: extensionObj.Extension},{TenantId: tenantId},{CompanyId:companyId}], include: [{model: dbmodel.UserGroup, as:'UserGroup'}]})
                     .then(function (resExt)
                     {
                         if(resExt)
@@ -1807,7 +1807,7 @@ var addExtensionToCache = function(extensionObj, companyId, tenantId)
                                 //add sip user by id object
                                 var keyGroupById = 'USERGROUP:' + tenantId + ':' + companyId + ':' + resExt.UserGroup.id;
 
-                                dbmodel.UserGroup.find({where: [{id: resExt.UserGroup.id}], include: [{model: dbmodel.Extension, as:'Extension'},{model: dbmodel.SipUACEndpoint, as:'SipUACEndpoint'}]})
+                                dbmodel.UserGroup.findOne({where: [{id: resExt.UserGroup.id}], include: [{model: dbmodel.Extension, as:'Extension'},{model: dbmodel.SipUACEndpoint, as:'SipUACEndpoint'}]})
                                     .then(function (resGrp)
                                     {
                                         client.set(keyGroupById, JSON.stringify(resGrp), function(err, response)
@@ -1842,7 +1842,7 @@ var addExtensionToCache = function(extensionObj, companyId, tenantId)
             }
             else if(extensionObj.ObjCategory === 'CONFERENCE')
             {
-                dbmodel.Extension.find({where: [{Extension: extensionObj.Extension},{TenantId: tenantId},{CompanyId:companyId}], include: [{model: dbmodel.Conference, as:'Conference'}]})
+                dbmodel.Extension.findOne({where: [{Extension: extensionObj.Extension},{TenantId: tenantId},{CompanyId:companyId}], include: [{model: dbmodel.Conference, as:'Conference'}]})
                     .then(function (resExt)
                     {
                         if(resExt)
@@ -1905,7 +1905,7 @@ var addSipUserToCache = function(sipUserObj, companyId, tenantId)
         {
             var keySipUserById = 'SIPUSERBYID:' + tenantId + ':' + companyId + ':' + sipUserObj.id;
 
-            dbmodel.SipUACEndpoint.find({where: [{id: sipUserObj.id, TenantId: tenantId, CompanyId: companyId}], include: [{model: dbmodel.Extension, as:'Extension'}]})
+            dbmodel.SipUACEndpoint.findOne({where: [{id: sipUserObj.id, TenantId: tenantId, CompanyId: companyId}], include: [{model: dbmodel.Extension, as:'Extension'}]})
                 .then(function (resUser)
                 {
                     client.set(keySipUserById, JSON.stringify(resUser), function(err, response)
@@ -1932,7 +1932,7 @@ var addSipUserToCache = function(sipUserObj, companyId, tenantId)
 
                     if(resUser.Extension && resUser.Extension.id)
                     {
-                        dbmodel.Extension.find({where: [{id: resUser.Extension.id},{TenantId: tenantId},{CompanyId:companyId}], include: [{model: dbmodel.SipUACEndpoint, as:'SipUACEndpoint'}]})
+                        dbmodel.Extension.findOne({where: [{id: resUser.Extension.id},{TenantId: tenantId},{CompanyId:companyId}], include: [{model: dbmodel.SipUACEndpoint, as:'SipUACEndpoint'}]})
                             .then(function (resExt)
                             {
                                 if(resExt)
@@ -1983,7 +1983,7 @@ var addGroupToCache = function(groupObj, companyId, tenantId)
         {
             var keyGroupById = 'USERGROUP:' + tenantId + ':' + companyId + ':' + groupObj.id;
 
-            dbmodel.UserGroup.find({where: [{id: groupObj.id, CompanyId: companyId, TenantId: tenantId}], include: [{model: dbmodel.Extension, as:'Extension'},{model: dbmodel.SipUACEndpoint, as:'SipUACEndpoint'}]})
+            dbmodel.UserGroup.findOne({where: [{id: groupObj.id, CompanyId: companyId, TenantId: tenantId}], include: [{model: dbmodel.Extension, as:'Extension'},{model: dbmodel.SipUACEndpoint, as:'SipUACEndpoint'}]})
                 .then(function (resGrp)
                 {
                     client.set(keyGroupById, JSON.stringify(resGrp), function(err, response)
@@ -1993,7 +1993,7 @@ var addGroupToCache = function(groupObj, companyId, tenantId)
 
                     if(resGrp.Extension && resGrp.Extension.id)
                     {
-                        dbmodel.Extension.find({where: [{id: resGrp.Extension.id},{TenantId: tenantId},{CompanyId:companyId}], include: [{model: dbmodel.UserGroup, as:'UserGroup'}]})
+                        dbmodel.Extension.findOne({where: [{id: resGrp.Extension.id},{TenantId: tenantId},{CompanyId:companyId}], include: [{model: dbmodel.UserGroup, as:'UserGroup'}]})
                             .then(function (resExt)
                             {
                                 var keyExt = 'EXTENSION:' + tenantId + ':' + companyId + ':' + resExt.Extension;
@@ -2209,7 +2209,7 @@ var addConferenceToCache = function(conferenceObj, companyId, tenantId)
         {
             var keyConference = 'CONFERENCE:' + tenantId + ':' + companyId + ':' + conferenceObj.ConferenceName;
 
-            dbmodel.Conference.find({where: [{ConferenceName: conferenceObj.ConferenceName, CompanyId: companyId, TenantId: tenantId}], include: [{model: dbmodel.ConferenceUser, as:'ConferenceUser'}]})
+            dbmodel.Conference.findOne({where: [{ConferenceName: conferenceObj.ConferenceName, CompanyId: companyId, TenantId: tenantId}], include: [{model: dbmodel.ConferenceUser, as:'ConferenceUser'}]})
                 .then(function (resConf)
                 {
                     client.set(keyConference, JSON.stringify(resConf), function(err, response)
@@ -2223,7 +2223,7 @@ var addConferenceToCache = function(conferenceObj, companyId, tenantId)
                 });
 
 
-            dbmodel.Extension.find({where: [{CompanyId: companyId, TenantId: tenantId}], include: [{model: dbmodel.Conference, as:'Conference', where:[{ConferenceName: conferenceObj.ConferenceName}]}]})
+            dbmodel.Extension.findOne({where: [{CompanyId: companyId, TenantId: tenantId}], include: [{model: dbmodel.Conference, as:'Conference', where:[{ConferenceName: conferenceObj.ConferenceName}]}]})
                 .then(function (resExt)
                 {
                     if(resExt && resExt.Extension && resExt.Conference)
@@ -2263,7 +2263,7 @@ var addPABXUserToCache = function(pabxUserUuid, companyId, tenantId)
         {
             var keyPbxUser = 'PBXUSER:' + tenantId + ':' + companyId + ':' + pabxUserUuid;
 
-            dbmodel.PBXUser.find({where :[{CompanyId: companyId},{TenantId: tenantId},{UserUuid: pabxUserUuid}], include : [{model: dbmodel.PBXUserTemplate, as: "PBXUserTemplateActive"}, {model: dbmodel.FollowMe, as: "FollowMe", include: [{model: dbmodel.PBXUser, as: "DestinationUser"}]}, {model: dbmodel.Forwarding, as: "Forwarding"}]})
+            dbmodel.PBXUser.findOne({where :[{CompanyId: companyId},{TenantId: tenantId},{UserUuid: pabxUserUuid}], include : [{model: dbmodel.PBXUserTemplate, as: "PBXUserTemplateActive"}, {model: dbmodel.FollowMe, as: "FollowMe", include: [{model: dbmodel.PBXUser, as: "DestinationUser"}]}, {model: dbmodel.Forwarding, as: "Forwarding"}]})
                 .then(function (usrObj)
                 {
                     if(usrObj)
@@ -2393,7 +2393,7 @@ var addScheduleToCache = function(scheduleId, companyId, tenantId)
         {
             var keyPbxUser = 'SCHEDULE:' + tenantId + ':' + companyId + ':' + scheduleId;
 
-            dbmodel.Schedule.find({where :[{CompanyId: companyId},{TenantId: tenantId},{id: scheduleId}], include : [{model: dbmodel.Appointment, as: "Appointment"}]})
+            dbmodel.Schedule.findOne({where :[{CompanyId: companyId},{TenantId: tenantId},{id: scheduleId}], include : [{model: dbmodel.Appointment, as: "Appointment"}]})
                 .then(function (schedule)
                 {
                     if(schedule)
