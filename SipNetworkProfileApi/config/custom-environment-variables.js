@@ -1,13 +1,10 @@
-/**
- * Created by a on 10/16/2015.
- */
 module.exports = {
-    "DB": {
-        "Type":"SYS_DATABASE_TYPE",
-        "User":"SYS_DATABASE_POSTGRES_USER",
-        "Password":"SYS_DATABASE_POSTGRES_PASSWORD",
-        "Port":"SYS_SQL_PORT",
-        "Host":"SYS_DATABASE_HOST",
-        "Database":"SYS_DATABASE_POSTGRES_USER"
-    }
+  DB: {
+    Type: "SYS_POSTGRES_TYPE",
+    User: "SYS_POSTGRES_USER",
+    Password: "SYS_POSTGRES_PASSWORD",
+    Port: "SYS_POSTGRES_PORT",
+    Host: "SYS_POSTGRES_HOST",
+    Database: "SYS_POSTGRES_DB"
+  }
 };
