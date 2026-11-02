@@ -5,7 +5,11 @@ module.exports = {
     Password: "SYS_POSTGRES_PASSWORD",
     Port: "SYS_POSTGRES_PORT",
     Host: "SYS_POSTGRES_HOST",
-    Database: "SYS_POSTGRES_DB"
+    Database: "SYS_POSTGRES_DB",
+    Cluster: "SYS_POSTGRES_CLUSTER_ENABLED",
+    PgBouncer: "SYS_POSTGRES_PGBOUNCER_ENABLED",
+    PoolMax: "SYS_POSTGRES_POOL_MAX",
+    PoolMin: "SYS_POSTGRES_POOL_MIN"
   },
   Redis: {
     mode: "SYS_REDIS_MODE",
