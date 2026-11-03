@@ -1,10 +1,10 @@
 module.exports = {
   "DB": {
     "Type":"postgres",
-    "User":"duo",
-    "Password":"DuoS123",
+    "User":"",
+    "Password":"",
     "Port":5432,
-    "Host":"localhost",
+    "Host":"",
     "Database":"dvpdb"
   },
 
@@ -12,11 +12,11 @@ module.exports = {
   "Redis":
   {
     "mode":"sentinel",//instance, cluster, sentinel
-    "ip": "45.55.142.207",
+    "ip": "",
     "port": 6389,
-    "password": "DuoS123",
+    "password": "",
     "sentinels":{
-      "hosts": "138.197.90.92,45.55.205.92,138.197.90.92",
+      "hosts": "",
       "port":16389,
       "name":"redis-cluster"
     }
@@ -27,12 +27,12 @@ module.exports = {
   "Security":
   {
 
-    "ip" : "45.55.142.207",
+    "ip" : "",
     "port": 6389,
-    "password": "DuoS123",
+    "password": "",
     "mode":"sentinel",//instance, cluster, sentinel
     "sentinels":{
-      "hosts": "138.197.90.92,45.55.205.92,138.197.90.92",
+      "hosts": "",
       "port":16389,
       "name":"redis-cluster"
     }
